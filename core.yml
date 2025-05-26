@@ -7,7 +7,10 @@ services:
     networks:
       - microservices_network
   service-discovery-container:
-    image: selimhorri/service-discovery-ecommerce-boot:0.1.0
+    image: samuelgutierrez24/service-discovery-ecommerce-boot:lastest
+    build:
+      context: ./service-discovery
+      dockerfile: Dockerfile
     ports:
       - 8761:8761
     environment:
@@ -17,7 +20,10 @@ services:
     networks:
       - microservices_network
   cloud-config-container:
-    image: selimhorri/cloud-config-ecommerce-boot:0.1.0
+    image: samuelgutierrez24/cloud-config-ecommerce-boot:lastest
+    build:
+      context: ./cloud-config
+      dockerfile: Dockerfile
     ports:
       - 9296:9296
     environment:

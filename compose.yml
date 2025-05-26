@@ -1,7 +1,10 @@
 version: '3'
 services:
   api-gateway-container:
-    image: selimhorri/api-gateway-ecommerce-boot:0.1.0
+    image: samuelgutierrez24/api-gateway-ecommerce-boot:lastest
+    build:
+      context: ./api-gateway
+      dockerfile: Dockerfile
     ports:
       - 8080:8080
     environment:
@@ -16,7 +19,10 @@ services:
     networks:
       - microservices_network
   proxy-client-container:
-    image: selimhorri/proxy-client-ecommerce-boot:0.1.0
+    image: samuelgutierrez24/proxy-client-ecommerce-boot:lastest
+    build:
+      context: ./proxy-client
+      dockerfile: Dockerfile
     ports:
       - 8900:8900
     environment:
@@ -31,7 +37,10 @@ services:
     networks:
       - microservices_network
   order-service-container:
-    image: selimhorri/order-service-ecommerce-boot:0.1.0
+    image: samuelgutierrez24/order-service-ecommerce-boot:lastest
+    build:
+      context: ./order-service
+      dockerfile: Dockerfile
     ports:
       - 8300:8300
     environment:
@@ -46,7 +55,10 @@ services:
     networks:
       - microservices_network
   payment-service-container:
-    image: selimhorri/payment-service-ecommerce-boot:0.1.0
+    image: samuelgutierrez24/payment-service-ecommerce-boot:lastest
+    build:
+      context: ./payment-service
+      dockerfile: Dockerfile
     ports:
       - 8400:8400
     environment:
@@ -61,7 +73,10 @@ services:
     networks:
       - microservices_network
   product-service-container:
-    image: selimhorri/product-service-ecommerce-boot:0.1.0
+    image: samuelgutierrez24/product-service-ecommerce-boot:lastest
+    build:
+      context: ./product-service
+      dockerfile: Dockerfile
     ports:
       - 8500:8500
     environment:
@@ -76,7 +91,10 @@ services:
     networks:
       - microservices_network
   shipping-service-container:
-    image: selimhorri/shipping-service-ecommerce-boot:0.1.0
+    image: samuelgutierrez24/shipping-service-ecommerce-boot:lastest
+    build:
+      context: ./shipping-service
+      dockerfile: Dockerfile
     ports:
       - 8600:8600
     environment:
@@ -91,7 +109,10 @@ services:
     networks:
       - microservices_network
   user-service-container:
-    image: selimhorri/user-service-ecommerce-boot:0.1.0
+    image: samuelgutierrez24/user-service-ecommerce-boot:lastest
+    build:
+      context: ./user-service
+      dockerfile: Dockerfile
     ports:
       - 8700:8700
     environment:
@@ -106,7 +127,10 @@ services:
     networks:
       - microservices_network
   favourite-service-container:
-    image: selimhorri/favourite-service-ecommerce-boot:0.1.0
+    image: samuelgutierrez24/favourite-service-ecommerce-boot:lastest
+    build:
+      context: ./favourite-service
+      dockerfile: Dockerfile
     ports:
       - 8800:8800
     environment:
