@@ -1,0 +1,90 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-service
+  namespace: ecommerce-microservices
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: user-service
+  template:
+    metadata:
+      labels:
+        app: user-service
+    spec:
+      containers:
+      - name: user-service
+        image: samuelgutierrez24/user-service-ecommerce-boot:lastest
+        ports:
+        - containerPort: 8700
+        env:
+        - name: SPRING_PROFILES_ACTIVE
+          value: "dev"
+        - name: SPRING_ZIPKIN_BASE_URL
+          value: "http://zipkin:9411"
+        - name: EUREKA_CLIENT_REGION
+          value: "default"
+        - name: EUREKA_CLIENT_AVAILABILITYZONES_DEFAULT
+          value: "myzone"
+        - name: EUREKA_CLIENT_SERVICEURL_MYZONE
+          value: "http://service-discovery:8761/eureka"
+        - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
+          value: "http://service-discovery:8761/eureka/"
+        - name: SPRING_CONFIG_IMPORT
+          value: "optional:configserver:http://cloud-config:9296/"
+        - name: EUREKA_INSTANCE
+          value: "user-service"
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /user-service/actuator/health
+            port: 8700
+          initialDelaySeconds: 120
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /user-service/actuator/health
+            port: 8700
+          initialDelaySeconds: 90
+          periodSeconds: 10
+      initContainers:
+      - name: wait-for-eureka
+        image: busybox:1.35
+        command: ['sh', '-c']
+        args:
+          - >
+            until nc -z service-discovery 8761;
+            do echo waiting for eureka;
+            sleep 2;
+            done;
+      - name: wait-for-config
+        image: busybox:1.35
+        command: ['sh', '-c']
+        args:
+          - >
+            until nc -z cloud-config 9296;
+            do echo waiting for config server;
+            sleep 2;
+            done;
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: user-service
+  namespace: ecommerce-microservices
+spec:
+  selector:
+    app: user-service
+  ports:
+    - port: 8700
+      targetPort: 8700
+      nodePort: 30700
+  type: NodePort
