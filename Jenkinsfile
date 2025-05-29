@@ -27,13 +27,13 @@ pipeline {
             steps {
                 script {
                     echo "Checking for kubectl..."
-                    // Try to get version, if it fails (non-zero exit code), then install
-                    def kubectlExists = sh(script: "${env.KUBECTL_PATH} version --client --short || true", returnStatus: true) == 0
+                    // Correctly check if kubectl exists and is executable
+                    def kubectlExists = sh(script: "command -v ${env.KUBECTL_PATH} >/dev/null 2>&1 && ${env.KUBECTL_PATH} version --client --short >/dev/null 2>&1", returnStatus: true) == 0
                     if (kubectlExists) {
-                        echo "kubectl already installed."
+                        echo "kubectl already installed and functional."
                         sh "${env.KUBECTL_PATH} version --client"
                     } else {
-                        echo "kubectl not found. Attempting to install..."
+                        echo "kubectl not found or not functional. Attempting to install..."
                         // Since the container runs as root (runAsUser: 0 in jenkins-deployment.yml)
                         // we should be able to install it to /usr/local/bin
                         sh "curl -LO \"https://dl.k8s.io/release/\$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl\""
