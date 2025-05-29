@@ -3,10 +3,6 @@
 
 Write-Host "Starting deployment of Ecommerce Microservices to Minikube..." -ForegroundColor Green
 
-# Apply namespace first
-Write-Host "Creating namespace..." -ForegroundColor Yellow
-kubectl apply -f k8s/namespace.yml
-
 # Deploy core infrastructure services first
 Write-Host "Deploying Zipkin..." -ForegroundColor Yellow
 kubectl apply -f k8s/zipkin.yml
