@@ -11,13 +11,13 @@ Write-Host "Deploying Service Discovery (Eureka)..." -ForegroundColor Yellow
 kubectl apply -f k8s/service-discovery.yml
 
 Write-Host "Waiting for Service Discovery to be ready..." -ForegroundColor Yellow
-kubectl wait --for=condition=ready pod -l app=service-discovery -n ecommerce-microservices --timeout=300s
+kubectl wait --for=condition=ready pod -l app=service-discovery -n default --timeout=300s
 
 Write-Host "Deploying Cloud Config Server..." -ForegroundColor Yellow
 kubectl apply -f k8s/cloud-config.yml
 
 Write-Host "Waiting for Cloud Config to be ready..." -ForegroundColor Yellow
-kubectl wait --for=condition=ready pod -l app=cloud-config -n ecommerce-microservices --timeout=300s
+kubectl wait --for=condition=ready pod -l app=cloud-config -n default --timeout=300s
 
 # Deploy business services
 Write-Host "Deploying API Gateway..." -ForegroundColor Yellow
@@ -35,7 +35,7 @@ kubectl apply -f k8s/proxy-client.yml
 Write-Host "Deployment completed!" -ForegroundColor Green
 Write-Host ""
 Write-Host "Services Status:" -ForegroundColor Cyan
-kubectl get pods -n ecommerce-microservices
+kubectl get pods -n default
 Write-Host ""
 Write-Host "Services URLs (using Minikube IP):" -ForegroundColor Cyan
 $MINIKUBE_IP = minikube ip

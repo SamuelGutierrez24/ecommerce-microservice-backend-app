@@ -3,7 +3,7 @@ pipeline {
     agent any // Assumes agent has git, and will have kubectl after setup
 
     environment {
-        APP_DEPLOYMENTS_NAMESPACE = "ecommerce-microservices" // Assuming your apps deploy here, as per deploy.ps1 waits
+        APP_DEPLOYMENTS_NAMESPACE = "default" // Changed to default namespace
         // Manifest files - adjust if names differ
         ZIPKIN_MANIFEST = "zipkin.yml"
         SERVICE_DISCOVERY_MANIFEST = "service-discovery.yml"
