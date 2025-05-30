@@ -5,28 +5,26 @@ metadata:
   namespace: jenkins
 ---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
+kind: ClusterRole
 metadata:
-  namespace: jenkins
-  name: jenkins-role
+  name: jenkins-cluster-reader
 rules:
-- apiGroups: [""]
-  resources: ["pods", "pods/exec", "services", "endpoints", "persistentvolumeclaims", "configmaps", "secrets"]
-  verbs: ["get", "list", "watch", "create", "delete", "patch", "update"]
-- apiGroups: ["apps"]
-  resources: ["deployments", "replicasets", "statefulsets"]
-  verbs: ["get", "list", "watch", "create", "delete", "patch", "update"]
+- apiGroups: [""] # Core API group
+  resources: ["pods", "services"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["apps"] # For deployments
+  resources: ["deployments", "replicasets", "statefulsets", "daemonsets"]
+  verbs: ["get", "list", "watch"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
+kind: ClusterRoleBinding
 metadata:
-  name: jenkins-rolebinding
-  namespace: jenkins
+  name: jenkins-cluster-reader-binding
 subjects:
 - kind: ServiceAccount
-  name: jenkins
-  namespace: jenkins
+  name: jenkins # Name of the ServiceAccount used by Jenkins
+  namespace: jenkins # Namespace where Jenkins ServiceAccount resides
 roleRef:
-  kind: Role
-  name: jenkins-role
+  kind: ClusterRole
+  name: jenkins-cluster-reader
   apiGroup: rbac.authorization.k8s.io

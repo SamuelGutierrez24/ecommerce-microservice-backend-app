@@ -91,6 +91,15 @@ pipeline {
             }
         }
 
+        stage('Apply Cluster RBAC for Verification') {
+            steps {
+                script {
+                    echo "Applying cluster-wide RBAC for Jenkins to read resources..."
+                    sh "${env.KUBECTL_PATH} apply -f k8s/jenkins-rbac.yml"
+                }
+            }
+        }
+
         stage('Verify Deployments') {
             steps {
                 script {
