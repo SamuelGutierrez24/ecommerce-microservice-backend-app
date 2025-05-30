@@ -375,7 +375,7 @@ pipeline {
                         def tag = "v${now.format('yyyy.MM.dd.HHmm')}"
                         def title = "Production Release ${tag}"
                         
-                        sh \'\'\'#!/bin/bash -e
+                        sh '''#!/bin/bash -e
                             echo "Current directory: $(pwd)"
                             echo "Verifying Git and GitHub CLI versions..."
                             git --version
@@ -404,7 +404,7 @@ pipeline {
                             gh release create "${tag}" --title "${title}" --generate-notes
                             
                             echo "Successfully created GitHub release for tag ${tag}."
-                        \'\'\'
+                        '''
                         echo "Release notes generation stage completed for tag ${tag}."
                     }
                 }
