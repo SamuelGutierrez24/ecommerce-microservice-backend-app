@@ -158,10 +158,9 @@ pipeline {
                         // Note: This uses apt-get, assuming a Debian-based agent.
                         // Adjust if your agent uses a different OS/package manager.
                         if (sh(script: "! command -v python3 &> /dev/null", returnStatus: true) == 0) {
-                            echo "Python3 not found. Attempting to install using apt-get..."
                             sh "apt-get update && apt-get install -y python3 python3-pip python3-venv"
                         } else {
-                            echo "Python3 already available."
+                            echo "Python3 already installed."
                         }
                         sh "python3 --version"
                         sh "pip3 --version"
@@ -169,8 +168,23 @@ pipeline {
                         sh "python3 -m pip install --user locust --break-system-packages || pip3 install --user locust --break-system-packages"
                         // To verify locust, it needs to be in PATH or called via python3 -m locust
                         sh "python3 -m locust --version"
+                    } else if (env.SELECTED_ENV == 'prod') {
+                        echo "Installing GitHub CLI for PROD environment..."
+                        if (sh(script: "! command -v gh &> /dev/null", returnStatus: true) == 0) {
+                            echo "GitHub CLI not found. Installing..."
+                            sh '''
+                                curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
+                                chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg
+                                echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+                                apt-get update && apt-get install -y gh
+                            '''
+                            sh "gh --version"
+                        } else {
+                            echo "GitHub CLI already installed."
+                            sh "gh --version"
+                        }
                     } else {
-                        echo "Skipping Python/Locust installation for environment ${env.SELECTED_ENV}"
+                        echo "Skipping Python/Locust and GitHub CLI installation for environment ${env.SELECTED_ENV}"
                     }
 
                     echo "=== BUILD ENVIRONMENT PREPARATION COMPLETE ==="
@@ -336,13 +350,62 @@ pipeline {
                             if (minikubeIp) {
                                 echo "Minikube IP (attempted): ${minikubeIp}"
                             } else {
-                                echo "Could not determine Minikube IP via 'minikube ip' command."
+                                echo "Could not determine Minikube IP via \'minikube ip\' command."
                             }
                         } else {
-                             echo "Minikube CLI not found in agent. Skipping 'minikube ip'."
+                             echo "Minikube CLI not found in agent. Skipping \'minikube ip\'."
                         }
                     } catch (any) {
                         echo "Could not retrieve Minikube IP: ${any.getMessage()}"
+                    }
+                }
+            }
+        }
+
+        stage('Generar Release Notes') {
+            when {
+                expression { return env.SELECTED_ENV == 'prod' }
+            }
+            steps {
+                withCredentials([usernamePassword(credentialsId: \'github-token\', usernameVariable: \'GH_USER\', passwordVariable: \'GH_TOKEN\')]) {
+                    script {
+                        echo "Generating Release Notes for PROD environment..."
+                        def now = new Date()
+                        // Format: vYEAR.MONTH.DAY.HOURMINUTE (e.g., v2023.05.15.1430)
+                        def tag = "v${now.format(\'yyyy.MM.dd.HHmm\')}"
+                        def title = "Production Release ${tag}"
+                        
+                        sh \'\'\'#!/bin/bash -e
+                            echo "Current directory: $(pwd)"
+                            echo "Verifying Git and GitHub CLI versions..."
+                            git --version
+                            gh --version
+
+                            echo "Configuring Git with user: Jenkins CI and email: jenkins-ci@ecommerce.com"
+                            git config user.email "jenkins-ci@ecommerce.com"
+                            git config user.name "Jenkins CI"
+                            
+                            echo "Configuring Git to use GitHub token for authentication with github.com..."
+                            # This ensures git operations (like push) are authenticated via the token for github.com.
+                            # It replaces https://github.com/ with https://oauth2:${GH_TOKEN}@github.com/
+                            git config --global url."https://oauth2:${GH_TOKEN}@github.com/".insteadOf "https://github.com/"
+                            
+                            echo "Creating Git tag: ${tag}"
+                            # Create an annotated tag with a message including the build number.
+                            git tag -a "${tag}" -m "Production deployment - Build #${env.BUILD_NUMBER}"
+                            
+                            echo "Pushing Git tag ${tag} to remote repository \'origin\'..."
+                            git push origin "${tag}"
+                            
+                            echo "Creating GitHub release for tag ${tag} with title \'${title}\'..."
+                            # Export GH_TOKEN as GITHUB_TOKEN for gh CLI to pick it up.
+                            # gh CLI uses GITHUB_TOKEN environment variable for authentication.
+                            export GITHUB_TOKEN="${GH_TOKEN}"
+                            gh release create "${tag}" --title "${title}" --generate-notes
+                            
+                            echo "Successfully created GitHub release for tag ${tag}."
+                        \'\'\'
+                        echo "Release notes generation stage completed for tag ${tag}."
                     }
                 }
             }

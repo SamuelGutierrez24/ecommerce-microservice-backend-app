@@ -21,7 +21,9 @@
 									"pm.collectionVariables.set(\"userId\", response.userId);\r",
 									"pm.collectionVariables.set(\"credentialId\", response.credential.credentialId);\r",
 									"\r",
-									"\r",
+									"pm.test(\"Status code is 200 (OK)\", function () {\r",
+									"    pm.expect(pm.response.code).equals(200);\r",
+									"});\r",
 									""
 								],
 								"type": "text/javascript",
@@ -67,6 +69,20 @@
 				},
 				{
 					"name": "Create Credential",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200 (OK)\", function () {\r",
+									"    pm.expect(pm.response.code).equals(200);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
 					"request": {
 						"method": "POST",
 						"header": [],
@@ -95,6 +111,20 @@
 				},
 				{
 					"name": "get created user",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200 (OK)\", function () {\r",
+									"    pm.expect(pm.response.code).equals(200);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
 					"request": {
 						"method": "GET",
 						"header": [],
@@ -127,7 +157,10 @@
 								"exec": [
 									"let response = pm.response.json();\r",
 									"\r",
-									"pm.collectionVariables.set(\"category_id\", response.categoryId);"
+									"pm.collectionVariables.set(\"category_id\", response.categoryId);\r",
+									"pm.test(\"Status code is 200 (OK)\", function () {\r",
+									"    pm.expect(pm.response.code).equals(200);\r",
+									"});"
 								],
 								"type": "text/javascript",
 								"packages": {}
@@ -169,7 +202,10 @@
 								"exec": [
 									"let response = pm.response.json();\r",
 									"\r",
-									"pm.collectionVariables.set(\"product_id\", response.productId);"
+									"pm.collectionVariables.set(\"product_id\", response.productId);\r",
+									"pm.test(\"Status code is 200 (OK)\", function () {\r",
+									"    pm.expect(pm.response.code).equals(200);\r",
+									"});"
 								],
 								"type": "text/javascript",
 								"packages": {}
@@ -204,6 +240,20 @@
 				},
 				{
 					"name": "Get category",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200 (OK)\", function () {\r",
+									"    pm.expect(pm.response.code).equals(200);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
 					"request": {
 						"method": "GET",
 						"header": [],
@@ -224,6 +274,20 @@
 				},
 				{
 					"name": "Get product",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200 (OK)\", function () {\r",
+									"    pm.expect(pm.response.code).equals(200);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
 					"request": {
 						"method": "GET",
 						"header": [],
@@ -260,7 +324,9 @@
 									"pm.collectionVariables.set(\"credentialId\", response.credential.credentialId);\r",
 									"\r",
 									"\r",
-									""
+									"pm.test(\"Status code is 200 (OK)\", function () {\r",
+									"    pm.expect(pm.response.code).equals(200);\r",
+									"});"
 								],
 								"type": "text/javascript",
 								"packages": {}
@@ -306,6 +372,20 @@
 				},
 				{
 					"name": "Create Credential V2",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200 (OK)\", function () {\r",
+									"    pm.expect(pm.response.code).equals(200);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
 					"request": {
 						"method": "POST",
 						"header": [],
@@ -334,6 +414,20 @@
 				},
 				{
 					"name": "get created user V2",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200 (OK)\", function () {\r",
+									"    pm.expect(pm.response.code).equals(200);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
 					"request": {
 						"method": "GET",
 						"header": [],
@@ -361,7 +455,10 @@
 								"exec": [
 									"let response = pm.response.json();\r",
 									"\r",
-									"pm.collectionVariables.set(\"category_id\", response.categoryId);"
+									"pm.collectionVariables.set(\"category_id\", response.categoryId);\r",
+									"pm.test(\"Status code is 200 (OK)\", function () {\r",
+									"    pm.expect(pm.response.code).equals(200);\r",
+									"});"
 								],
 								"type": "text/javascript",
 								"packages": {}
@@ -403,7 +500,10 @@
 								"exec": [
 									"let response = pm.response.json();\r",
 									"\r",
-									"pm.collectionVariables.set(\"product_id\", response.productId);"
+									"pm.collectionVariables.set(\"product_id\", response.productId);\r",
+									"pm.test(\"Status code is 200 (OK)\", function () {\r",
+									"    pm.expect(pm.response.code).equals(200);\r",
+									"});"
 								],
 								"type": "text/javascript",
 								"packages": {}
@@ -438,6 +538,20 @@
 				},
 				{
 					"name": "Get category V2",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200 (OK)\", function () {\r",
+									"    pm.expect(pm.response.code).equals(200);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
 					"request": {
 						"method": "GET",
 						"header": [],
@@ -458,6 +572,20 @@
 				},
 				{
 					"name": "Get product Copy",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200 (OK)\", function () {\r",
+									"    pm.expect(pm.response.code).equals(200);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
 					"request": {
 						"method": "GET",
 						"header": [],
@@ -485,7 +613,10 @@
 								"exec": [
 									"let response = pm.response.json();\r",
 									"\r",
-									"pm.collectionVariables.set(\"cart_id\", response.cartId);"
+									"pm.collectionVariables.set(\"cart_id\", response.cartId);\r",
+									"pm.test(\"Status code is 200 (OK)\", function () {\r",
+									"    pm.expect(pm.response.code).equals(200);\r",
+									"});"
 								],
 								"type": "text/javascript",
 								"packages": {}
@@ -520,6 +651,20 @@
 				},
 				{
 					"name": "Get Carrito",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200 (OK)\", function () {\r",
+									"    pm.expect(pm.response.code).equals(200);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
 					"request": {
 						"method": "GET",
 						"header": [],
@@ -547,7 +692,10 @@
 								"exec": [
 									"let response = pm.response.json();\r",
 									"\r",
-									"pm.collectionVariables.set(\"order_id\", response.orderId);"
+									"pm.collectionVariables.set(\"order_id\", response.orderId);\r",
+									"pm.test(\"Status code is 200 (OK)\", function () {\r",
+									"    pm.expect(pm.response.code).equals(200);\r",
+									"});"
 								],
 								"type": "text/javascript",
 								"packages": {}
@@ -582,6 +730,20 @@
 				},
 				{
 					"name": "Get Order",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200 (OK)\", function () {\r",
+									"    pm.expect(pm.response.code).equals(200);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
 					"request": {
 						"method": "GET",
 						"header": [],
@@ -609,7 +771,10 @@
 								"exec": [
 									"let response = pm.response.json();\r",
 									"\r",
-									"pm.collectionVariables.set(\"payment_id\", response.paymentId);"
+									"pm.collectionVariables.set(\"payment_id\", response.paymentId);\r",
+									"pm.test(\"Status code is 200 (OK)\", function () {\r",
+									"    pm.expect(pm.response.code).equals(200);\r",
+									"});"
 								],
 								"type": "text/javascript",
 								"packages": {}
@@ -644,6 +809,20 @@
 				},
 				{
 					"name": "Get payment",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200 (OK)\", function () {\r",
+									"    pm.expect(pm.response.code).equals(200);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
 					"request": {
 						"method": "GET",
 						"header": [],
@@ -679,7 +858,9 @@
 									"pm.collectionVariables.set(\"userId\", response.userId);\r",
 									"pm.collectionVariables.set(\"credentialId\", response.credential.credentialId);\r",
 									"\r",
-									"\r",
+									"pm.test(\"Status code is 200 (OK)\", function () {\r",
+									"    pm.expect(pm.response.code).equals(200);\r",
+									"});\r",
 									""
 								],
 								"type": "text/javascript",
@@ -725,6 +906,20 @@
 				},
 				{
 					"name": "Create Credential V3",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200 (OK)\", function () {\r",
+									"    pm.expect(pm.response.code).equals(200);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
 					"request": {
 						"method": "POST",
 						"header": [],
@@ -760,7 +955,10 @@
 								"exec": [
 									"let response = pm.response.json();\r",
 									"\r",
-									"pm.collectionVariables.set(\"category_id\", response.categoryId);"
+									"pm.collectionVariables.set(\"category_id\", response.categoryId);\r",
+									"pm.test(\"Status code is 200 (OK)\", function () {\r",
+									"    pm.expect(pm.response.code).equals(200);\r",
+									"});"
 								],
 								"type": "text/javascript",
 								"packages": {}
@@ -802,7 +1000,10 @@
 								"exec": [
 									"let response = pm.response.json();\r",
 									"\r",
-									"pm.collectionVariables.set(\"product_id\", response.productId);"
+									"pm.collectionVariables.set(\"product_id\", response.productId);\r",
+									"pm.test(\"Status code is 200 (OK)\", function () {\r",
+									"    pm.expect(pm.response.code).equals(200);\r",
+									"});"
 								],
 								"type": "text/javascript",
 								"packages": {}
@@ -837,6 +1038,20 @@
 				},
 				{
 					"name": "Get product",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200 (OK)\", function () {\r",
+									"    pm.expect(pm.response.code).equals(200);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
 					"request": {
 						"method": "GET",
 						"header": [],
@@ -857,6 +1072,20 @@
 				},
 				{
 					"name": "Agregar Favorito",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200 (OK)\", function () {\r",
+									"    pm.expect(pm.response.code).equals(200);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
 					"request": {
 						"method": "POST",
 						"header": [],
@@ -885,6 +1114,20 @@
 				},
 				{
 					"name": "Get favorito",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200 (OK)\", function () {\r",
+									"    pm.expect(pm.response.code).equals(200);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
 					"protocolProfileBehavior": {
 						"disableBodyPruning": true
 					},
@@ -910,6 +1153,79 @@
 								"api",
 								"favourites",
 								"find"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "User delete",
+			"item": [
+				{
+					"name": "Delete user",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200 (OK)\", function () {\r",
+									"    pm.expect(pm.response.code).equals(200);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/user-service/api/users/{{userId}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"user-service",
+								"api",
+								"users",
+								"{{userId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Check delete",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 500 Internal Server Error\", function () {\r",
+									"    pm.expect(pm.response.code).equals(500);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/user-service/api/users/{{userId}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"user-service",
+								"api",
+								"users",
+								"{{userId}}"
 							]
 						}
 					},
