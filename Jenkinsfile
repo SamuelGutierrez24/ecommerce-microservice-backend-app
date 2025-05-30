@@ -60,26 +60,30 @@ pipeline {
                         echo "Deploying applications to Minikube in namespace: ${env.APP_DEPLOYMENTS_NAMESPACE}..."
 
                         echo "Applying manifest: ${env.ZIPKIN_MANIFEST}..."
-                        sh "${env.KUBECTL_PATH} apply -f ${env.ZIPKIN_MANIFEST}" // Assuming namespace is in YAML or using default/current
+                        sh "${env.KUBECTL_PATH} apply -f ${env.ZIPKIN_MANIFEST} -n ${env.APP_DEPLOYMENTS_NAMESPACE}" // Assuming namespace is in YAML or using default/current
 
                         echo "Applying manifest: ${env.SERVICE_DISCOVERY_MANIFEST}..."
-                        sh "${env.KUBECTL_PATH} apply -f ${env.SERVICE_DISCOVERY_MANIFEST}"
+                        sh "${env.KUBECTL_PATH} apply -f ${env.SERVICE_DISCOVERY_MANIFEST} -n ${env.APP_DEPLOYMENTS_NAMESPACE}"
+                        echo "Describing Service Discovery deployment..."
+                        sh "${env.KUBECTL_PATH} describe deployment service-discovery -n ${env.APP_DEPLOYMENTS_NAMESPACE}"
+                        echo "Getting all pods in namespace ${env.APP_DEPLOYMENTS_NAMESPACE}..."
+                        sh "${env.KUBECTL_PATH} get pods -n ${env.APP_DEPLOYMENTS_NAMESPACE} -o wide --show-labels"
                         echo "Waiting for Service Discovery (label: ${env.SERVICE_DISCOVERY_LABEL}) to be ready in namespace ${env.APP_DEPLOYMENTS_NAMESPACE}..."
                         sh "${env.KUBECTL_PATH} wait --for=condition=ready pod -l ${env.SERVICE_DISCOVERY_LABEL} -n ${env.APP_DEPLOYMENTS_NAMESPACE} --timeout=${env.MINIKUBE_TIMEOUT}"
 
                         echo "Applying manifest: ${env.CLOUD_CONFIG_MANIFEST}..."
-                        sh "${env.KUBECTL_PATH} apply -f ${env.CLOUD_CONFIG_MANIFEST}"
+                        sh "${env.KUBECTL_PATH} apply -f ${env.CLOUD_CONFIG_MANIFEST} -n ${env.APP_DEPLOYMENTS_NAMESPACE}"
                         echo "Waiting for Cloud Config (label: ${env.CLOUD_CONFIG_LABEL}) to be ready in namespace ${env.APP_DEPLOYMENTS_NAMESPACE}..."
                         sh "${env.KUBECTL_PATH} wait --for=condition=ready pod -l ${env.CLOUD_CONFIG_LABEL} -n ${env.APP_DEPLOYMENTS_NAMESPACE} --timeout=${env.MINIKUBE_TIMEOUT}"
                         
                         echo "Applying manifest: ${env.API_GATEWAY_MANIFEST}..."
-                        sh "${env.KUBECTL_PATH} apply -f ${env.API_GATEWAY_MANIFEST}"
+                        sh "${env.KUBECTL_PATH} apply -f ${env.API_GATEWAY_MANIFEST} -n ${env.APP_DEPLOYMENTS_NAMESPACE}"
 
                         echo "Deploying other business services..."
                         def businessManifests = env.BUSINESS_SERVICES_MANIFESTS.split(',')
                         for (manifest in businessManifests) {
                             echo "Applying Kubernetes manifest: ${manifest}"
-                            sh "${env.KUBECTL_PATH} apply -f ${manifest.trim()}"
+                            sh "${env.KUBECTL_PATH} apply -f ${manifest.trim()} -n ${env.APP_DEPLOYMENTS_NAMESPACE}"
                         }
                         echo "All application manifests applied."
                     }
