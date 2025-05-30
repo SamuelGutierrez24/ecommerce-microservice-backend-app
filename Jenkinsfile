@@ -235,10 +235,41 @@ pipeline {
             }
             steps {
                 script {
-                    echo "Running Unit and Integration tests for STAGE environment..."
-                    // This assumes Maven is installed and in PATH on the Jenkins agent
-                    // And that pom.xml is in the root of the checkout
-                    sh "mvn clean verify -DskipTests=false" 
+                    echo "Running targeted tests for STAGE environment..."
+                    
+                    echo "Running Unit Tests in user-service..."
+                    dir('user-service') {
+                        sh "mvn clean test"
+                    }
+                    
+                    echo "Running Integration Tests in product-service (skipping its unit tests)..."
+                    dir('product-service') {
+                        // This command skips unit tests (Surefire) but allows integration tests (Failsafe) to run.
+                        sh "mvn clean verify -DskipTests"
+                    }
+                    echo "Finished Unit and Integration tests for STAGE."
+                }
+            }
+        }
+
+        stage('Ejecutar Pruebas E2E') {
+            when {
+                anyOf {
+                    expression { return env.SELECTED_ENV == 'stage' }
+                    expression { return env.SELECTED_ENV == 'prod' }
+                }
+            }
+            steps {
+                script {
+                    echo "Verificando que newman esté disponible (debería estar en PATH)..."
+                    sh "newman --version"
+            
+                    echo "Ejecutando pruebas E2E desde la carpeta 'E2E test'..."
+                    // Quoting 'E2E test' because of the space in the directory name
+                    dir('E2E test') {
+                        sh 'newman run "TestE2E.postman_collection.json"'
+                    }
+                    echo "Pruebas E2E completadas."
                 }
             }
         }
