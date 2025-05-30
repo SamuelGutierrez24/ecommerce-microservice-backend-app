@@ -3,7 +3,7 @@ pipeline {
     agent any // Assumes agent has git, and will have kubectl after setup
 
     environment {
-        APP_DEPLOYMENTS_NAMESPACE = "default" // Changed to default namespace
+        APP_DEPLOYMENTS_NAMESPACE = "jenkins" // Changed to jenkins namespace
         // Manifest files - adjust if names differ
         ZIPKIN_MANIFEST = "zipkin.yml"
         SERVICE_DISCOVERY_MANIFEST = "service-discovery.yml"
@@ -87,15 +87,6 @@ pipeline {
                         }
                         echo "All application manifests applied."
                     }
-                }
-            }
-        }
-
-        stage('Apply Cluster RBAC for Verification') {
-            steps {
-                script {
-                    echo "Applying cluster-wide RBAC for Jenkins to read resources..."
-                    sh "${env.KUBECTL_PATH} apply -f k8s/jenkins-rbac.yml"
                 }
             }
         }
