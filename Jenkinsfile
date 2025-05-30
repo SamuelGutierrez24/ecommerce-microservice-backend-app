@@ -372,7 +372,7 @@ pipeline {
                         echo "Generating Release Notes for PROD environment..."
                         def now = new Date()
                         // Format: vYEAR.MONTH.DAY.HOURMINUTE (e.g., v2023.05.15.1430)
-                        def tag = "v${now.format(\'yyyy.MM.dd.HHmm\')}"
+                        def tag = "v${now.format('yyyy.MM.dd.HHmm')}"
                         def title = "Production Release ${tag}"
                         
                         sh \'\'\'#!/bin/bash -e
