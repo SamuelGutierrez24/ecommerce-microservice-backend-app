@@ -180,14 +180,14 @@ pipeline {
 
         stage('Deploy Application Manifests to Minikube') {
             when {
-                expression { return env.SELECTED_ENV == 'dev' || env.SELECTED_ENV == 'stage' }
+                expression { return env.SELECTED_ENV == 'dev' || env.SELECTED_ENV == 'stage' || env.SELECTED_ENV == 'prod' }
             }
             steps {
                 dir('k8s') {
                     script {
                         echo "Deploying for environment: ${env.SELECTED_ENV} to namespace: ${env.APP_DEPLOYMENTS_NAMESPACE}..."
 
-                        // Common core services for dev and stage
+                        // Common core services for dev, stage, and prod
                         echo "Applying manifest: ${env.ZIPKIN_MANIFEST}..."
                         sh "${env.KUBECTL_PATH} apply -f ${env.ZIPKIN_MANIFEST} -n ${env.APP_DEPLOYMENTS_NAMESPACE}" // Assuming namespace is in YAML or using default/current
 
@@ -212,8 +212,8 @@ pipeline {
                         if (env.SELECTED_ENV == 'dev') {
                             echo "Deploying DEV specific business services..."
                             businessServicesToDeploy = env.DEV_SPECIFIC_BUSINESS_SERVICES_MANIFESTS.split(',')
-                        } else { // stage
-                            echo "Deploying ALL business services for STAGE..."
+                        } else { // stage or prod
+                            echo "Deploying ALL business services for ${env.SELECTED_ENV}..."
                             businessServicesToDeploy = env.BUSINESS_SERVICES_MANIFESTS.split(',')
                         }
 
@@ -231,11 +231,11 @@ pipeline {
 
         stage('Run Unit and Integration Tests') {
             when {
-                expression { return env.SELECTED_ENV == 'stage' }
+                expression { return env.SELECTED_ENV == 'stage' || env.SELECTED_ENV == 'prod' }
             }
             steps {
                 script {
-                    echo "Running targeted tests for STAGE environment..."
+                    echo "Running targeted tests for ${env.SELECTED_ENV} environment..."
                     
                     echo "Running Unit Tests in user-service..."
                     dir('user-service') {
@@ -244,10 +244,9 @@ pipeline {
                     
                     echo "Running Integration Tests in product-service (skipping its unit tests)..."
                     dir('product-service') {
-                        // This command skips unit tests (Surefire) but allows integration tests (Failsafe) to run.
                         sh "mvn clean verify -DskipTests"
                     }
-                    echo "Finished Unit and Integration tests for STAGE."
+                    echo "Finished Unit and Integration tests for ${env.SELECTED_ENV}."
                 }
             }
         }
@@ -306,7 +305,7 @@ pipeline {
 
         stage('Verify Deployments') {
             when {
-                expression { return env.SELECTED_ENV == 'dev' || env.SELECTED_ENV == 'stage' }
+                expression { return env.SELECTED_ENV == 'dev' || env.SELECTED_ENV == 'stage' || env.SELECTED_ENV == 'prod' }
             }
             steps {
                 script {
@@ -318,7 +317,7 @@ pipeline {
                     def deploymentNamesList
                     if (env.SELECTED_ENV == 'dev') {
                         deploymentNamesList = env.DEV_DEPLOYMENT_NAMES_TO_VERIFY.split(',')
-                    } else { // stage
+                    } else { // stage or prod
                         deploymentNamesList = env.ALL_APP_DEPLOYMENT_NAMES.split(',')
                     }
 
@@ -345,17 +344,6 @@ pipeline {
                     } catch (any) {
                         echo "Could not retrieve Minikube IP: ${any.getMessage()}"
                     }
-                }
-            }
-        }
-        
-        stage('Production Placeholder') {
-            when {
-                expression { return env.SELECTED_ENV == 'prod' }
-            }
-            steps {
-                script {
-                    echo "Production environment selected. No actions defined yet."
                 }
             }
         }
