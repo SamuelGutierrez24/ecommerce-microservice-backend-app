@@ -14,6 +14,17 @@ pipeline {
         APP_DEPLOYMENTS_NAMESPACE = "jenkins"
         SELECTED_ENV = "${params.ENVIRONMENT}"
 
+        // Paths for tools to be installed by 'Prepare Build Environment' stage
+        HOME_DIR = sh(script: 'echo $HOME', returnStdout: true).trim() // Get HOME dynamically
+        JAVA_HOME_TOOLS = "${HOME_DIR}/java11"
+        MAVEN_HOME_TOOLS = "${HOME_DIR}/maven"
+        NODE_HOME_TOOLS = "${HOME_DIR}/nodejs"
+        TOOLS_BIN_PATH = "${HOME_DIR}/bin" // For any other tools placed in $HOME/bin
+
+        // Update PATH to include installed tools. env.PATH is the agent's original PATH.
+        PATH = "${TOOLS_BIN_PATH}:${JAVA_HOME_TOOLS}/bin:${MAVEN_HOME_TOOLS}/bin:${NODE_HOME_TOOLS}/bin:${env.PATH}"
+        JAVA_HOME = "${JAVA_HOME_TOOLS}" // Specifically set JAVA_HOME as well
+
         // Manifest files - adjust if names differ
         ZIPKIN_MANIFEST = "zipkin.yml"
         SERVICE_DISCOVERY_MANIFEST = "service-discovery.yml"
@@ -36,7 +47,7 @@ pipeline {
         DEV_DEPLOYMENT_NAMES_TO_VERIFY = "zipkin,service-discovery,cloud-config,api-gateway,user-service,order-service,product-service,payment-service,favourite-service"
         
         MINIKUBE_TIMEOUT = "5m"
-        KUBECTL_PATH = "/usr/local/bin/kubectl"
+        KUBECTL_PATH = "/usr/local/bin/kubectl" // This remains from your existing setup
     }
 
     stages {
@@ -67,6 +78,103 @@ pipeline {
             steps {
                 echo 'Checking out source code...'
                 checkout scm
+            }
+        }
+
+        stage('Prepare Build Environment') {
+            steps {
+                script {
+                    echo "Preparing build environment for: ${env.SELECTED_ENV}"
+                    // Ensure TOOLS_BIN_PATH exists
+                    sh "mkdir -p ${env.TOOLS_BIN_PATH}"
+
+                    // Install Java 11 for Maven
+                    echo "Checking for Java 11 in ${env.JAVA_HOME_TOOLS}..."
+                    if (sh(script: "[ ! -d '${env.JAVA_HOME_TOOLS}' ]", returnStatus: true) == 0) {
+                        echo "Installing Java 11 to ${env.JAVA_HOME_TOOLS}..."
+                        sh '''
+                            cd /tmp
+                            curl -L -o openjdk-11.tar.gz https://download.java.net/java/GA/jdk11/9/GPL/openjdk-11.0.2_linux-x64_bin.tar.gz
+                            tar -xzf openjdk-11.tar.gz
+                            mkdir -p ${JAVA_HOME_TOOLS}
+                            mv jdk-11.0.2/* ${JAVA_HOME_TOOLS}/
+                            rm openjdk-11.tar.gz
+                            cd -
+                        '''
+                    } else {
+                        echo "Java 11 already found at ${env.JAVA_HOME_TOOLS}"
+                    }
+                    echo "Verifying Java for Maven:"
+                    sh "java -version" // Relies on updated PATH from environment block
+                    sh "javac -version" // Relies on updated PATH
+
+                    // Install Maven
+                    echo "Checking for Maven in ${env.MAVEN_HOME_TOOLS}..."
+                    if (sh(script: "[ ! -d '${env.MAVEN_HOME_TOOLS}' ]", returnStatus: true) == 0) {
+                        echo "Installing Maven to ${env.MAVEN_HOME_TOOLS}..."
+                        sh '''
+                            cd /tmp
+                            curl -sL https://archive.apache.org/dist/maven/maven-3/3.8.6/binaries/apache-maven-3.8.6-bin.tar.gz -o apache-maven-3.8.6-bin.tar.gz
+                            tar -xzf apache-maven-3.8.6-bin.tar.gz
+                            mkdir -p ${MAVEN_HOME_TOOLS}
+                            mv apache-maven-3.8.6/* ${MAVEN_HOME_TOOLS}/
+                            rm apache-maven-3.8.6-bin.tar.gz
+                            cd -
+                        '''
+                    } else {
+                        echo "Maven already found at ${env.MAVEN_HOME_TOOLS}"
+                    }
+                    echo "Verifying Maven:"
+                    sh "mvn --version" // Relies on updated PATH
+
+                    // Install Node.js
+                    echo "Checking for Node.js in ${env.NODE_HOME_TOOLS}..."
+                    if (sh(script: "[ ! -d '${env.NODE_HOME_TOOLS}' ]", returnStatus: true) == 0) {
+                        echo "Installing Node.js to ${env.NODE_HOME_TOOLS}..."
+                        sh '''
+                            cd /tmp
+                            curl -L -o node-v18.19.0-linux-x64.tar.gz https://nodejs.org/dist/v18.19.0/node-v18.19.0-linux-x64.tar.gz
+                            tar -xzf node-v18.19.0-linux-x64.tar.gz
+                            mkdir -p ${NODE_HOME_TOOLS}
+                            mv node-v18.19.0-linux-x64/* ${NODE_HOME_TOOLS}/
+                            rm node-v18.19.0-linux-x64.tar.gz
+                            cd -
+                        '''
+                    } else {
+                        echo "Node.js already found at ${env.NODE_HOME_TOOLS}"
+                    }
+                    echo "Verifying Node.js:"
+                    sh "node --version" // Relies on updated PATH
+                    sh "npm --version"  // Relies on updated PATH
+
+                    // Install newman
+                    echo "Installing/Verifying newman..."
+                    sh "npm install -g newman"
+                    sh "newman --version"
+
+                    // Install Python and Locust for 'stage' environment
+                    if (env.SELECTED_ENV == 'stage') {
+                        echo "Verifying and installing Python for Locust (STAGE environment)..."
+                        // Note: This uses apt-get, assuming a Debian-based agent.
+                        // Adjust if your agent uses a different OS/package manager.
+                        if (sh(script: "! command -v python3 &> /dev/null", returnStatus: true) == 0) {
+                            echo "Python3 not found. Attempting to install using apt-get..."
+                            sh "apt-get update && apt-get install -y python3 python3-pip python3-venv"
+                        } else {
+                            echo "Python3 already available."
+                        }
+                        sh "python3 --version"
+                        sh "pip3 --version"
+                        echo "Installing locust..."
+                        sh "python3 -m pip install --user locust --break-system-packages || pip3 install --user locust --break-system-packages"
+                        // To verify locust, it needs to be in PATH or called via python3 -m locust
+                        sh "python3 -m locust --version"
+                    } else {
+                        echo "Skipping Python/Locust installation for environment ${env.SELECTED_ENV}"
+                    }
+
+                    echo "=== BUILD ENVIRONMENT PREPARATION COMPLETE ==="
+                }
             }
         }
 
