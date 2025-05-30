@@ -274,6 +274,36 @@ pipeline {
             }
         }
 
+        stage('Ejecutar Pruebas de Carga (Locust)') {
+            when {
+                expression { return env.SELECTED_ENV == 'stage' }
+            }
+            steps {
+                script {
+                    echo "Verificando Python y Locust (deberían estar en PATH o accesibles)..."
+                    sh "python3 --version"
+                    sh "python3 -m locust --version" // Ensures locust is callable
+
+                    echo "Ejecutando pruebas de carga con Locust desde la carpeta 'locust'..."
+                    dir('locust') {
+                        // Ensure locustfile.py is present
+                        sh 'ls -l locustfile.py' 
+                        sh '''
+                            python3 -m locust -f locustfile.py --headless -u 100 -r 20 -t 30s --csv=load_test_report --html=load_test_report.html
+                            echo "Pruebas de Locust completadas. Listando reportes generados:"
+                            ls -la load_test_report*
+                        '''
+                    }
+                }
+            }
+            post {
+                always {
+                    echo "Archivando reportes de Locust..."
+                    archiveArtifacts artifacts: 'locust/load_test_report*.csv, locust/load_test_report*.html', allowEmptyArchive: true
+                }
+            }
+        }
+
         stage('Verify Deployments') {
             when {
                 expression { return env.SELECTED_ENV == 'dev' || env.SELECTED_ENV == 'stage' }
@@ -334,6 +364,10 @@ pipeline {
     post {
         always {
             echo "Pipeline execution finished for environment: ${params.ENVIRONMENT}."
+            echo "Limpiando espacio de trabajo..."
+            catchError(buildResult: 'SUCCESS', stageResult: 'SUCCESS') {
+                cleanWs()
+            }
         }
         success {
             echo "Pipeline completed successfully for environment: ${params.ENVIRONMENT}!"
