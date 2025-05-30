@@ -53,7 +53,7 @@ pipeline {
                         echo "kubectl not found or not functional. Attempting to install..."
                         // Since the container runs as root (runAsUser: 0 in jenkins-deployment.yml)
                         // we should be able to install it to /usr/local/bin
-                        sh "curl -LO \\\"https://dl.k8s.io/release/\$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl\\\""
+                        sh "curl -LO \"https://dl.k8s.io/release/\$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl\""
                         sh "chmod +x kubectl"
                         sh "mv kubectl ${env.KUBECTL_PATH}"
                         echo "kubectl installation attempted. Verifying..."
