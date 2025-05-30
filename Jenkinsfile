@@ -267,7 +267,7 @@ pipeline {
                     echo "Ejecutando pruebas E2E desde la carpeta 'E2E test'..."
                     // Quoting 'E2E test' because of the space in the directory name
                     dir('E2E test') {
-                        sh 'newman run "TestE2E.postman_collection.json"'
+                        sh 'newman run "TestE2E.postman_collection1.json"'
                     }
                     echo "Pruebas E2E completadas."
                 }
