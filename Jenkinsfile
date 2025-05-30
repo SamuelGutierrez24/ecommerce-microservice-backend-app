@@ -32,7 +32,7 @@ pipeline {
         API_GATEWAY_MANIFEST = "api-gateway.yml"
         
         // All business services for 'stage'
-        BUSINESS_SERVICES_MANIFESTS = "order-service.yml,payment-service.yml,product-service.yml,shipping-service.yml,user-service.yml,favourite-service.yml,proxy-client.yml"
+        BUSINESS_SERVICES_MANIFESTS = "order-service.yml,payment-service.yml,product-service.yml,user-service.yml,favourite-service.yml"
         // Specific business services for 'dev'
         DEV_SPECIFIC_BUSINESS_SERVICES_MANIFESTS = "user-service.yml,order-service.yml,product-service.yml,payment-service.yml,favourite-service.yml"
 
@@ -42,7 +42,7 @@ pipeline {
 
         // Deployment names for rollout status check
         // For 'stage' - all deployments
-        ALL_APP_DEPLOYMENT_NAMES = "zipkin,service-discovery,cloud-config,api-gateway,order-service,payment-service,product-service,shipping-service,user-service,favourite-service,proxy-client"
+        ALL_APP_DEPLOYMENT_NAMES = "zipkin,service-discovery,cloud-config,api-gateway,order-service,payment-service,product-service,user-service,favourite-service"
         // For 'dev' - specific deployments
         DEV_DEPLOYMENT_NAMES_TO_VERIFY = "zipkin,service-discovery,cloud-config,api-gateway,user-service,order-service,product-service,payment-service,favourite-service"
         
