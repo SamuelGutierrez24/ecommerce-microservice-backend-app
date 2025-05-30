@@ -2,24 +2,41 @@
 pipeline {
     agent any // Assumes agent has git, and will have kubectl after setup
 
+    parameters {
+        choice(
+            name: 'ENVIRONMENT',
+            choices: ['dev', 'stage', 'prod'],
+            description: 'Select the deployment environment'
+        )
+    }
+
     environment {
-        APP_DEPLOYMENTS_NAMESPACE = "jenkins" // Changed to jenkins namespace
+        APP_DEPLOYMENTS_NAMESPACE = "jenkins"
+        SELECTED_ENV = "${params.ENVIRONMENT}"
+
         // Manifest files - adjust if names differ
         ZIPKIN_MANIFEST = "zipkin.yml"
         SERVICE_DISCOVERY_MANIFEST = "service-discovery.yml"
         CLOUD_CONFIG_MANIFEST = "cloud-config.yml"
         API_GATEWAY_MANIFEST = "api-gateway.yml"
+        
+        // All business services for 'stage'
         BUSINESS_SERVICES_MANIFESTS = "order-service.yml,payment-service.yml,product-service.yml,shipping-service.yml,user-service.yml,favourite-service.yml,proxy-client.yml"
+        // Specific business services for 'dev'
+        DEV_SPECIFIC_BUSINESS_SERVICES_MANIFESTS = "user-service.yml,order-service.yml,product-service.yml,payment-service.yml,favourite-service.yml"
 
-        // Labels for kubectl wait commands - ensure these match the selectors in your service discovery and cloud config pods/deployments
+        // Labels for kubectl wait commands
         SERVICE_DISCOVERY_LABEL = "app=service-discovery"
         CLOUD_CONFIG_LABEL = "app=cloud-config"
 
-        // Deployment names for rollout status check. These should match metadata.name in your Deployment YAMLs.
-        // Adjust these names if they differ from the file names (sans .yml).
+        // Deployment names for rollout status check
+        // For 'stage' - all deployments
         ALL_APP_DEPLOYMENT_NAMES = "zipkin,service-discovery,cloud-config,api-gateway,order-service,payment-service,product-service,shipping-service,user-service,favourite-service,proxy-client"
-        MINIKUBE_TIMEOUT = "5m" // Timeout for kubectl wait and rollout status
-        KUBECTL_PATH = "/usr/local/bin/kubectl" // Define a path for kubectl
+        // For 'dev' - specific deployments
+        DEV_DEPLOYMENT_NAMES_TO_VERIFY = "zipkin,service-discovery,cloud-config,api-gateway,user-service,order-service,product-service,payment-service,favourite-service"
+        
+        MINIKUBE_TIMEOUT = "5m"
+        KUBECTL_PATH = "/usr/local/bin/kubectl"
     }
 
     stages {
@@ -36,7 +53,7 @@ pipeline {
                         echo "kubectl not found or not functional. Attempting to install..."
                         // Since the container runs as root (runAsUser: 0 in jenkins-deployment.yml)
                         // we should be able to install it to /usr/local/bin
-                        sh "curl -LO \"https://dl.k8s.io/release/\$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl\""
+                        sh "curl -LO \\\"https://dl.k8s.io/release/\$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl\\\""
                         sh "chmod +x kubectl"
                         sh "mv kubectl ${env.KUBECTL_PATH}"
                         echo "kubectl installation attempted. Verifying..."
@@ -54,11 +71,15 @@ pipeline {
         }
 
         stage('Deploy Application Manifests to Minikube') {
+            when {
+                expression { return env.SELECTED_ENV == 'dev' || env.SELECTED_ENV == 'stage' }
+            }
             steps {
-                dir('k8s') { // Navigate to the directory containing manifests
+                dir('k8s') {
                     script {
-                        echo "Deploying applications to Minikube in namespace: ${env.APP_DEPLOYMENTS_NAMESPACE}..."
+                        echo "Deploying for environment: ${env.SELECTED_ENV} to namespace: ${env.APP_DEPLOYMENTS_NAMESPACE}..."
 
+                        // Common core services for dev and stage
                         echo "Applying manifest: ${env.ZIPKIN_MANIFEST}..."
                         sh "${env.KUBECTL_PATH} apply -f ${env.ZIPKIN_MANIFEST} -n ${env.APP_DEPLOYMENTS_NAMESPACE}" // Assuming namespace is in YAML or using default/current
 
@@ -68,52 +89,79 @@ pipeline {
                         sh "${env.KUBECTL_PATH} describe deployment service-discovery -n ${env.APP_DEPLOYMENTS_NAMESPACE}"
                         echo "Getting all pods in namespace ${env.APP_DEPLOYMENTS_NAMESPACE}..."
                         sh "${env.KUBECTL_PATH} get pods -n ${env.APP_DEPLOYMENTS_NAMESPACE} -o wide --show-labels"
-                        echo "Waiting for Service Discovery (label: ${env.SERVICE_DISCOVERY_LABEL}) to be ready in namespace ${env.APP_DEPLOYMENTS_NAMESPACE}..."
+                        echo "Waiting for Service Discovery (label: ${env.SERVICE_DISCOVERY_LABEL}) to be ready..."
                         sh "${env.KUBECTL_PATH} wait --for=condition=ready pod -l ${env.SERVICE_DISCOVERY_LABEL} -n ${env.APP_DEPLOYMENTS_NAMESPACE} --timeout=${env.MINIKUBE_TIMEOUT}"
 
                         echo "Applying manifest: ${env.CLOUD_CONFIG_MANIFEST}..."
                         sh "${env.KUBECTL_PATH} apply -f ${env.CLOUD_CONFIG_MANIFEST} -n ${env.APP_DEPLOYMENTS_NAMESPACE}"
-                        echo "Waiting for Cloud Config (label: ${env.CLOUD_CONFIG_LABEL}) to be ready in namespace ${env.APP_DEPLOYMENTS_NAMESPACE}..."
+                        echo "Waiting for Cloud Config (label: ${env.CLOUD_CONFIG_LABEL}) to be ready..."
                         sh "${env.KUBECTL_PATH} wait --for=condition=ready pod -l ${env.CLOUD_CONFIG_LABEL} -n ${env.APP_DEPLOYMENTS_NAMESPACE} --timeout=${env.MINIKUBE_TIMEOUT}"
                         
                         echo "Applying manifest: ${env.API_GATEWAY_MANIFEST}..."
                         sh "${env.KUBECTL_PATH} apply -f ${env.API_GATEWAY_MANIFEST} -n ${env.APP_DEPLOYMENTS_NAMESPACE}"
 
-                        echo "Deploying other business services..."
-                        def businessManifests = env.BUSINESS_SERVICES_MANIFESTS.split(',')
-                        for (manifest in businessManifests) {
-                            echo "Applying Kubernetes manifest: ${manifest}"
-                            sh "${env.KUBECTL_PATH} apply -f ${manifest.trim()} -n ${env.APP_DEPLOYMENTS_NAMESPACE}"
+                        def businessServicesToDeploy
+                        if (env.SELECTED_ENV == 'dev') {
+                            echo "Deploying DEV specific business services..."
+                            businessServicesToDeploy = env.DEV_SPECIFIC_BUSINESS_SERVICES_MANIFESTS.split(',')
+                        } else { // stage
+                            echo "Deploying ALL business services for STAGE..."
+                            businessServicesToDeploy = env.BUSINESS_SERVICES_MANIFESTS.split(',')
                         }
-                        echo "All application manifests applied."
+
+                        for (manifest in businessServicesToDeploy) {
+                            if (manifest.trim()) {
+                                echo "Applying Kubernetes manifest: ${manifest.trim()}"
+                                sh "${env.KUBECTL_PATH} apply -f ${manifest.trim()} -n ${env.APP_DEPLOYMENTS_NAMESPACE}"
+                            }
+                        }
+                        echo "All selected application manifests applied for ${env.SELECTED_ENV}."
                     }
                 }
             }
         }
 
-        stage('Verify Deployments') {
+        stage('Run Unit and Integration Tests') {
+            when {
+                expression { return env.SELECTED_ENV == 'stage' }
+            }
             steps {
                 script {
-                    echo "Verifying deployments in Minikube..."
+                    echo "Running Unit and Integration tests for STAGE environment..."
+                    // This assumes Maven is installed and in PATH on the Jenkins agent
+                    // And that pom.xml is in the root of the checkout
+                    sh "mvn clean verify -DskipTests=false" 
+                }
+            }
+        }
+
+        stage('Verify Deployments') {
+            when {
+                expression { return env.SELECTED_ENV == 'dev' || env.SELECTED_ENV == 'stage' }
+            }
+            steps {
+                script {
+                    echo "Verifying deployments in Minikube for environment ${env.SELECTED_ENV}..."
                     sh "${env.KUBECTL_PATH} get pods --all-namespaces -o wide"
                     sh "${env.KUBECTL_PATH} get services --all-namespaces -o wide"
 
                     echo "Checking rollout status of deployments in namespace ${env.APP_DEPLOYMENTS_NAMESPACE}..."
-                    def deploymentNames = env.ALL_APP_DEPLOYMENT_NAMES.split(',')
-                    for (depName in deploymentNames) {
-                        def deployment = depName.trim()
-                        echo "Checking rollout status for deployment: ${deployment}"
-                        // The || true is to prevent pipeline failure if a specific deployment isn't found or status fails, logging a warning instead.
-                        sh "${env.KUBECTL_PATH} rollout status deployment/${deployment} -n ${env.APP_DEPLOYMENTS_NAMESPACE} --timeout=${env.MINIKUBE_TIMEOUT} || echo \\\"Warning: Could not get rollout status for deployment ${deployment} in namespace ${env.APP_DEPLOYMENTS_NAMESPACE}, or it timed out.\\\""
+                    def deploymentNamesList
+                    if (env.SELECTED_ENV == 'dev') {
+                        deploymentNamesList = env.DEV_DEPLOYMENT_NAMES_TO_VERIFY.split(',')
+                    } else { // stage
+                        deploymentNamesList = env.ALL_APP_DEPLOYMENT_NAMES.split(',')
                     }
 
+                    for (depName in deploymentNamesList) {
+                        def deployment = depName.trim()
+                        if (deployment) {
+                            echo "Checking rollout status for deployment: ${deployment}"
+                            sh "${env.KUBECTL_PATH} rollout status deployment/${deployment} -n ${env.APP_DEPLOYMENTS_NAMESPACE} --timeout=${env.MINIKUBE_TIMEOUT} || echo \\\"Warning: Could not get rollout status for deployment ${deployment} in namespace ${env.APP_DEPLOYMENTS_NAMESPACE}, or it timed out.\\\""
+                        }
+                    }
                     echo "Attempting to retrieve Minikube IP and service URLs..."
-                    // Note: 'minikube ip' will likely not work inside the Jenkins pod running in Minikube.
-                    // This step might fail or return an IP not useful for external access from your machine.
-                    // For in-cluster communication, services use their Kubernetes service names.
                     try {
-                        // Check if minikube cli is available, if not, skip this.
-                        // This is a placeholder, as minikube CLI is likely not in the jenkins/jenkins:lts image.
                         def minikubeCliExists = sh(script: 'which minikube || true', returnStatus: true) == 0
                         if (minikubeCliExists) {
                             def minikubeIp = sh(script: 'minikube ip', returnStdout: true).trim()
@@ -131,17 +179,28 @@ pipeline {
                 }
             }
         }
+        
+        stage('Production Placeholder') {
+            when {
+                expression { return env.SELECTED_ENV == 'prod' }
+            }
+            steps {
+                script {
+                    echo "Production environment selected. No actions defined yet."
+                }
+            }
+        }
     }
 
     post {
         always {
-            echo 'Pipeline execution finished.'
+            echo "Pipeline execution finished for environment: ${params.ENVIRONMENT}."
         }
         success {
-            echo 'Pipeline completed successfully!'
+            echo "Pipeline completed successfully for environment: ${params.ENVIRONMENT}!"
         }
         failure {
-            echo 'Pipeline failed. Check logs for details.'
+            echo "Pipeline failed for environment: ${params.ENVIRONMENT}. Check logs for details."
         }
     }
 }
