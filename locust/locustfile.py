@@ -19,7 +19,7 @@ class MyUser(HttpUser):
     
     @task
     def getShippings(self):
-        self.client.get("/shipping-service/api/shippings/")
+        self.client.get("/favourite-service/api/favourites/")
     
     @task
     def getPayments(self):
