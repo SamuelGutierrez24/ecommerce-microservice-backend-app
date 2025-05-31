@@ -359,7 +359,7 @@ pipeline {
                         def tag = "v${now.format('yyyy.MM.dd.HHmm')}"
                         def title = "Production Release ${tag}"
                         
-                        sh '''#!/bin/bash -e
+                        sh """#!/bin/bash -e
                             echo "Current directory: $(pwd)"
                             echo "Verifying Git and GitHub CLI versions..."
                             git --version
@@ -378,17 +378,17 @@ pipeline {
                             # Create an annotated tag with a message.
                             git tag -a "${tag}" -m "Production deployment"
                             
-                            echo "Pushing Git tag ${tag} to remote repository \'origin\'..."
+                            echo "Pushing Git tag ${tag} to remote repository 'origin'..."
                             git push origin "${tag}"
                             
-                            echo "Creating GitHub release for tag ${tag} with title \'${title}\'..."
+                            echo "Creating GitHub release for tag ${tag} with title '${title}'..."
                             # Export GH_TOKEN as GITHUB_TOKEN for gh CLI to pick it up.
                             # gh CLI uses GITHUB_TOKEN environment variable for authentication.
                             export GITHUB_TOKEN="${GH_TOKEN}"
                             gh release create "${tag}" --title "${title}" --generate-notes
                             
                             echo "Successfully created GitHub release for tag ${tag}."
-                        '''
+                        """
                         echo "Release notes generation stage completed for tag ${tag}."
                     }
                 }
