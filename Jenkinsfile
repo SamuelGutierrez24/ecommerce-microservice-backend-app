@@ -342,22 +342,6 @@ pipeline {
                             sh "${env.KUBECTL_PATH} rollout status deployment/${deployment} -n ${env.APP_DEPLOYMENTS_NAMESPACE} --timeout=${env.MINIKUBE_TIMEOUT} || echo \\\"Warning: Could not get rollout status for deployment ${deployment} in namespace ${env.APP_DEPLOYMENTS_NAMESPACE}, or it timed out.\\\""
                         }
                     }
-                    echo "Attempting to retrieve Minikube IP and service URLs..."
-                    try {
-                        def minikubeCliExists = sh(script: 'which minikube || true', returnStatus: true) == 0
-                        if (minikubeCliExists) {
-                            def minikubeIp = sh(script: 'minikube ip', returnStdout: true).trim()
-                            if (minikubeIp) {
-                                echo "Minikube IP (attempted): ${minikubeIp}"
-                            } else {
-                                echo "Could not determine Minikube IP via \'minikube ip\' command."
-                            }
-                        } else {
-                             echo "Minikube CLI not found in agent. Skipping \'minikube ip\'."
-                        }
-                    } catch (any) {
-                        echo "Could not retrieve Minikube IP: ${any.getMessage()}"
-                    }
                 }
             }
         }
