@@ -351,7 +351,7 @@ pipeline {
                 expression { return env.SELECTED_ENV == 'prod' }
             }
             steps {
-                withCredentials([usernamePassword(credentialsId: 'github-token', usernameVariable: 'GH_USER', passwordVariable: 'GH_TOKEN')]) {
+                withCredentials([usernamePassword(credentialsId: '4feaea26-8346-4c74-9c12-c546417eadde', usernameVariable: 'GH_USER', passwordVariable: 'GH_TOKEN')]) {
                     script {
                         echo "Generating Release Notes for PROD environment..."
                         def now = new Date()
