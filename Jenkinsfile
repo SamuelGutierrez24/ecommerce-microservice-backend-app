@@ -352,13 +352,66 @@ pipeline {
             }
             steps {
                 withCredentials([usernamePassword(credentialsId: '4feaea26-8346-4c74-9c12-c546417eadde', usernameVariable: 'GH_USER', passwordVariable: 'GH_TOKEN')]) {
-                    script {
-                        echo "Generating Release Notes for PROD environment..."
+                    script {                        echo "Generating Release Notes for PROD environment..."
                         def now = new Date()
                         // Format: vYEAR.MONTH.DAY.HOURMINUTE (e.g., v2023.05.15.1430)
                         def tag = "v${now.format('yyyy.MM.dd.HHmm')}"
-                        def title = "Production Release ${tag}"
-                          sh """#!/bin/bash -e
+                        def title = "🚀 Production Release ${tag}"
+                        def releaseDate = now.format('MMMM dd, yyyy \'at\' HH:mm')
+                        
+                        // Create formatted release notes
+                        def releaseNotes = """
+## E-Commerce Microservices Backend - Production Release
+
+### Release Information
+- **Version:** ${tag}
+- **Release Date:** ${releaseDate}
+- **Environment:** Production
+- **Build Number:** #${env.BUILD_NUMBER}
+
+### Architecture Overview
+This release includes the complete microservices architecture:
+
+#### Core Infrastructure Services
+- **Service Discovery** - Eureka service registry
+- **Cloud Config** - Centralized configuration management
+- **API Gateway** - Single entry point for all services
+- **Zipkin** - Distributed tracing and monitoring
+
+#### Business Services
+- **User Service** - User management and authentication
+- **Product Service** - Product catalog and inventory
+- **Order Service** - Order processing and management
+- **Payment Service** - Payment processing
+- **Favourite Service** - User favorites management
+
+### Quality Assurance
+This release has been thoroughly tested with:
+- ✅ Unit Tests (user-service)
+- ✅ Integration Tests (product-service)
+- ✅ End-to-End Tests (Newman/Postman)
+- ✅ Load Testing (Locust)
+- ✅ Kubernetes Deployment Verification
+
+### Deployment Details
+- **Platform:** Kubernetes (Minikube)
+- **Namespace:** jenkins
+- **Deployment Strategy:** Rolling Update
+- **Health Checks:** Enabled for all services
+
+### Monitoring & Observability
+- **Tracing:** Zipkin dashboard available
+- **Logs:** Centralized logging via Kubernetes
+- **Metrics:** Service health monitoring
+
+### Security
+- Secure inter-service communication
+- API Gateway authentication
+- Environment-based configuration
+
+"""
+                        
+                        sh """#!/bin/bash -e
                             echo "Current directory: \$(pwd)"
                             echo "Verifying Git and GitHub CLI versions..."
                             git --version
@@ -375,18 +428,28 @@ pipeline {
                             
                             echo "Creating Git tag: ${tag}"
                             # Create an annotated tag with a message.
-                            git tag -a "${tag}" -m "Production deployment"
+                            git tag -a "${tag}" -m "🚀 Production deployment ${tag} - ${releaseDate}"
                             
                             echo "Pushing Git tag ${tag} to remote repository 'origin'..."
                             git push origin "${tag}"
+                            
+                            echo "Creating formatted release notes file..."
+                            cat > release_notes.md << 'EOF'
+${releaseNotes}
+EOF
                             
                             echo "Creating GitHub release for tag ${tag} with title '${title}'..."
                             # Export GH_TOKEN as GITHUB_TOKEN for gh CLI to pick it up.
                             # gh CLI uses GITHUB_TOKEN environment variable for authentication.
                             export GITHUB_TOKEN="\${GH_TOKEN}"
-                            gh release create "${tag}" --title "${title}" --generate-notes
+                            gh release create "${tag}" \\
+                                --title "${title}" \\
+                                --notes-file release_notes.md \\
+                                --generate-notes \\
+                                --latest
                             
                             echo "Successfully created GitHub release for tag ${tag}."
+                            echo "Release URL: \$(gh release view ${tag} --web --json url --jq '.url')"
                         """
                         echo "Release notes generation stage completed for tag ${tag}."
                     }
