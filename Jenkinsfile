@@ -360,7 +360,7 @@ pipeline {
                         def title = "Production Release ${tag}"
                         
                         sh """#!/bin/bash -e
-                            echo "Current directory: $(pwd)"
+                            echo "Current directory: \\$(pwd)"
                             echo "Verifying Git and GitHub CLI versions..."
                             git --version
                             gh --version
