@@ -358,9 +358,8 @@ pipeline {
                         // Format: vYEAR.MONTH.DAY.HOURMINUTE (e.g., v2023.05.15.1430)
                         def tag = "v${now.format('yyyy.MM.dd.HHmm')}"
                         def title = "Production Release ${tag}"
-                        
-                        sh """#!/bin/bash -e
-                            echo "Current directory: \\$(pwd)"
+                          sh """#!/bin/bash -e
+                            echo "Current directory: \$(pwd)"
                             echo "Verifying Git and GitHub CLI versions..."
                             git --version
                             gh --version
@@ -371,8 +370,8 @@ pipeline {
                             
                             echo "Configuring Git to use GitHub token for authentication with github.com..."
                             # This ensures git operations (like push) are authenticated via the token for github.com.
-                            # It replaces https://github.com/ with https://oauth2:${GH_TOKEN}@github.com/
-                            git config --global url."https://oauth2:${GH_TOKEN}@github.com/".insteadOf "https://github.com/"
+                            # It replaces https://github.com/ with https://oauth2:\${GH_TOKEN}@github.com/
+                            git config --global url."https://oauth2:\${GH_TOKEN}@github.com/".insteadOf "https://github.com/"
                             
                             echo "Creating Git tag: ${tag}"
                             # Create an annotated tag with a message.
@@ -384,7 +383,7 @@ pipeline {
                             echo "Creating GitHub release for tag ${tag} with title '${title}'..."
                             # Export GH_TOKEN as GITHUB_TOKEN for gh CLI to pick it up.
                             # gh CLI uses GITHUB_TOKEN environment variable for authentication.
-                            export GITHUB_TOKEN="${GH_TOKEN}"
+                            export GITHUB_TOKEN="\${GH_TOKEN}"
                             gh release create "${tag}" --title "${title}" --generate-notes
                             
                             echo "Successfully created GitHub release for tag ${tag}."
