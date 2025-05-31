@@ -375,8 +375,8 @@ pipeline {
                             git config --global url."https://oauth2:${GH_TOKEN}@github.com/".insteadOf "https://github.com/"
                             
                             echo "Creating Git tag: ${tag}"
-                            # Create an annotated tag with a message including the build number.
-                            git tag -a "${tag}" -m "Production deployment - Build #${env.BUILD_NUMBER}"
+                            # Create an annotated tag with a message.
+                            git tag -a "${tag}" -m "Production deployment"
                             
                             echo "Pushing Git tag ${tag} to remote repository \'origin\'..."
                             git push origin "${tag}"
