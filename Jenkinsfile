@@ -32,7 +32,7 @@ pipeline {
         API_GATEWAY_MANIFEST = "api-gateway.yml"
         
         // All business services for 'stage'
-        BUSINESS_SERVICES_MANIFESTS = "order-service.yml,payment-service.yml,product-service.yml,user-service.yml,favourite-service.yml"
+        BUSINESS_SERVICES_MANIFESTS = "order-service.yml,payment-service.yml,product-service.yml,user-service.yml,favourite-service.yml,shipping-service.yml"
         // Specific business services for 'dev'
         DEV_SPECIFIC_BUSINESS_SERVICES_MANIFESTS = "user-service.yml,order-service.yml,product-service.yml,payment-service.yml,favourite-service.yml"
 
