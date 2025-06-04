@@ -3,7 +3,7 @@ from locust import HttpUser, task, between
 class MyUser(HttpUser):
     wait_time = between(1, 5)  # Wait time between tasks
 
-    host = "http://api-gateway:8080"
+    host = "http://localhost:8080"
 
     @task
     def getUsers(self):
